@@ -9,9 +9,9 @@ class Model:
         self.db_config = {
             'host': 'localhost',
             'port': '3306',
-            'database': 'banco_de_dados',  # Nome do banco de dados
+            'database': 'sistema_pi',  # Nome do banco de dados
             'user': 'root',
-            'password': 'aydon1234512345'
+            'password': 'senac'
         }
 
     # Conectar ao banco de dados
@@ -69,7 +69,7 @@ class Model:
         try:
             cursor = conn.cursor()
             cursor.execute(
-            "INSERT INTO usuarios(nome, email, telefone, senha) VALUES (%s, %s, %s, %s)",
+            "INSERT INTO usuario(nome_usuario, email_usuario, telefone_usuario, senha_usuario) VALUES (%s, %s, %s, %s)",
             (name, email, phone, password)
 )
             conn.commit()
@@ -88,7 +88,7 @@ class Model:
         try:
             cursor = conn.cursor()
             cursor.execute(
-                "SELECT * FROM usuarios WHERE email = %s AND senha = %s",
+                "SELECT * FROM usuario WHERE email_usuario = %s AND senha_usuario = %s",
                 (email, password)
             )
             user = cursor.fetchone()
@@ -122,10 +122,10 @@ class Model:
             raise Exception('Falha ao obter as taxas de câmbio. Tente novamente mais tarde.')
 
 # Testando a função de registro
-"""
+
 if __name__ == "__main__":
     model = Model()
     result = model.register_user("Testateste", "joojoãoteste@gmail.com", "1234567890", "123")
     print(result)
-"""
+
 

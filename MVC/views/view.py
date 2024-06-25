@@ -201,6 +201,7 @@ class View:
                 register_error_label.config(text=error_message, fg="red")
             else:
                 register_error_label.config(text="Cadastro realizado com sucesso!", fg="green")
+                self.controller.model.register_user(values[0], values[1], values[2], values[3])
                 print("Cadastro realizado")
 
         register_button = Button(
