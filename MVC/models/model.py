@@ -1,24 +1,41 @@
 import re
 import requests
 import sqlite3
+from datetime import datetime
 
 class Model:
     def __init__(self):
         self.base_url = 'https://economia.awesomeapi.com.br/last/'
+
     # Conectar ao banco de dados
     def conn_db(self):
         try:
             conn = sqlite3.connect("conversor.db")
-            #conn = mysql.connector.connect(**self.db_config)
-            if conn.is_connected():
-                return conn
-        except:
-            print("Erro ao conectar ao MySQL")
+            # Criar tabela de usuários se não existir
+            cursor = conn.cursor()
+            cursor.execute('''CREATE TABLE IF NOT EXISTS usuario (
+                                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                                nome_usuario TEXT NOT NULL,
+                                email_usuario TEXT NOT NULL UNIQUE,
+                                telefone_usuario TEXT NOT NULL,
+                                senha_usuario TEXT NOT NULL)''')
+            # Criar tabela de conversões se não existir
+            cursor.execute('''CREATE TABLE IF NOT EXISTS conversao (
+                                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                                valor_entrada REAL NOT NULL,
+                                moeda_de_valor TEXT NOT NULL,
+                                moeda_para_valor TEXT NOT NULL,
+                                valor_convertido REAL NOT NULL,
+                                data_hora TEXT NOT NULL)''')
+            conn.commit()
+            return conn
+        except sqlite3.Error as e:
+            print(f"Erro ao conectar ao SQLite: {e}")
         return None
-    
+
     # Desconectar do banco de dados
     def disconnect_db(self, conn):
-        if conn.is_connected():
+        if conn:
             conn.close()
 
     # Validação de email
@@ -61,13 +78,15 @@ class Model:
         try:
             cursor = conn.cursor()
             cursor.execute(
-            "INSERT INTO usuario(nome_usuario, email_usuario, telefone_usuario, senha_usuario) VALUES (?, ?, ?, ?)",
-            (name, email, phone, password)
-)
+                "INSERT INTO usuario(nome_usuario, email_usuario, telefone_usuario, senha_usuario) VALUES (?, ?, ?, ?)",
+                (name, email, phone, password)
+            )
             conn.commit()
             return "Usuário registrado com sucesso."
-        except:
-            return f"Erro ao registrar usuário"
+        except sqlite3.IntegrityError:
+            return "Erro: Email já cadastrado."
+        except sqlite3.Error as e:
+            return f"Erro ao registrar usuário: {e}"
         finally:
             self.disconnect_db(conn)
 
@@ -85,8 +104,8 @@ class Model:
             )
             user = cursor.fetchone()
             return user if user else "Email ou senha incorretos."
-        except:
-            return f"Erro ao autenticar usuário:"
+        except sqlite3.Error as e:
+            return f"Erro ao autenticar usuário: {e}"
         finally:
             self.disconnect_db(conn)
 
@@ -101,6 +120,26 @@ class Model:
 
         return error_message
 
+    # Registrar conversão no banco de dados
+    def register_conversao(self, valor_entrada, moeda_de_valor, moeda_para_valor, valor_convertido):
+        conn = self.conn_db()
+        if not conn:
+            return "Erro ao conectar ao banco de dados."
+
+        try:
+            cursor = conn.cursor()
+            data_hora = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            cursor.execute(
+                "INSERT INTO conversao (valor_entrada, moeda_de_valor, moeda_para_valor, valor_convertido, data_hora) VALUES (?, ?, ?, ?, ?)",
+                (valor_entrada, moeda_de_valor, moeda_para_valor, valor_convertido, data_hora)
+            )
+            conn.commit()
+            return "Conversão registrada com sucesso."
+        except sqlite3.Error as e:
+            return f"Erro ao registrar conversão: {e}"
+        finally:
+            self.disconnect_db(conn)
+
     # Converter moeda
     def converter_moeda(self, valor_entrada, moeda_de_valor, moeda_para_valor):
         url = f'{self.base_url}{moeda_de_valor}-{moeda_para_valor}'
@@ -109,15 +148,38 @@ class Model:
             data = response.json()
             taxa_cambio = float(data[f'{moeda_de_valor}{moeda_para_valor}']['bid'])
             valor_convertido = valor_entrada * taxa_cambio
+            self.register_conversao(valor_entrada, moeda_de_valor, moeda_para_valor, valor_convertido)
             return valor_convertido
         else:
             raise Exception('Falha ao obter as taxas de câmbio. Tente novamente mais tarde.')
 
-# Testando a função de registro
+    # Obter histórico de conversões
+    def historico_conversao(self):
+        conn = self.conn_db()
+        if not conn:
+            return "Erro ao conectar ao banco de dados."
+
+        try:
+            cursor = conn.cursor()
+            cursor.execute("SELECT * FROM conversao")
+            conversoes = cursor.fetchall()
+            return conversoes
+        except sqlite3.Error as e:
+            return f"Erro ao obter histórico de conversões: {e}"
+        finally:
+            self.disconnect_db(conn)
+
+# Testando a função de registro e a conversão
 
 if __name__ == "__main__":
     model = Model()
-    result = model.register_user("Testateste", "joojoãoteste@gmail.com", "1234567890", "123")
+    result = model.register_user("Aydom", "aydomaparecido@gmail.com", "1234567890", "123")
     print(result)
 
+    valor_convertido = model.converter_moeda(100, 'USD', 'BRL')
+    print(f"Valor convertido: {valor_convertido}")
 
+    historico = model.historico_conversao()
+    print("Histórico de conversões:")
+    for conversao in historico:
+        print(conversao)
