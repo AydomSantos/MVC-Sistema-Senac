@@ -1,27 +1,19 @@
 import re
 import requests
-import mysql.connector
-from mysql.connector import Error
+import sqlite3
 
 class Model:
     def __init__(self):
         self.base_url = 'https://economia.awesomeapi.com.br/last/'
-        self.db_config = {
-            'host': 'localhost',
-            'port': '3306',
-            'database': 'sistema_pi',  # Nome do banco de dados
-            'user': 'root',
-            'password': 'senac'
-        }
-
     # Conectar ao banco de dados
     def conn_db(self):
         try:
-            conn = mysql.connector.connect(**self.db_config)
+            conn = sqlite3.connect("conversor.db")
+            #conn = mysql.connector.connect(**self.db_config)
             if conn.is_connected():
                 return conn
-        except Error as e:
-            print("Erro ao conectar ao MySQL", e)
+        except:
+            print("Erro ao conectar ao MySQL")
         return None
     
     # Desconectar do banco de dados
@@ -69,13 +61,13 @@ class Model:
         try:
             cursor = conn.cursor()
             cursor.execute(
-            "INSERT INTO usuario(nome_usuario, email_usuario, telefone_usuario, senha_usuario) VALUES (%s, %s, %s, %s)",
+            "INSERT INTO usuario(nome_usuario, email_usuario, telefone_usuario, senha_usuario) VALUES (?, ?, ?, ?)",
             (name, email, phone, password)
 )
             conn.commit()
             return "Usuário registrado com sucesso."
-        except Error as e:
-            return f"Erro ao registrar usuário: {e}"
+        except:
+            return f"Erro ao registrar usuário"
         finally:
             self.disconnect_db(conn)
 
@@ -88,13 +80,13 @@ class Model:
         try:
             cursor = conn.cursor()
             cursor.execute(
-                "SELECT * FROM usuario WHERE email_usuario = %s AND senha_usuario = %s",
+                "SELECT * FROM usuario WHERE email_usuario = ? AND senha_usuario = ?",
                 (email, password)
             )
             user = cursor.fetchone()
             return user if user else "Email ou senha incorretos."
-        except Error as e:
-            return f"Erro ao autenticar usuário: {e}"
+        except:
+            return f"Erro ao autenticar usuário:"
         finally:
             self.disconnect_db(conn)
 
