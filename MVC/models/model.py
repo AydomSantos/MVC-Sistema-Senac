@@ -154,14 +154,14 @@ class Model:
             raise Exception('Falha ao obter as taxas de câmbio. Tente novamente mais tarde.')
 
     # Obter histórico de conversões
-    def historico_conversao(self):
+    def historico_conversao(self, id):
         conn = self.conn_db()
         if not conn:
             return "Erro ao conectar ao banco de dados."
 
         try:
             cursor = conn.cursor()
-            cursor.execute("SELECT * FROM conversao")
+            cursor.execute("SELECT * FROM conversao WHERE id = ?", (id))
             conversoes = cursor.fetchall()
             return conversoes
         except sqlite3.Error as e:
@@ -169,17 +169,4 @@ class Model:
         finally:
             self.disconnect_db(conn)
 
-# Testando a função de registro e a conversão
 
-if __name__ == "__main__":
-    model = Model()
-    result = model.register_user("Aydom", "aydomaparecido@gmail.com", "1234567890", "123")
-    print(result)
-
-    valor_convertido = model.converter_moeda(100, 'USD', 'BRL')
-    print(f"Valor convertido: {valor_convertido}")
-
-    historico = model.historico_conversao()
-    print("Histórico de conversões:")
-    for conversao in historico:
-        print(conversao)
