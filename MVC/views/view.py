@@ -1,4 +1,4 @@
-from tkinter import Tk, Canvas, Entry, Button, PhotoImage, Label, Toplevel, StringVar, OptionMenu
+from tkinter import Tk, ttk, Canvas, Entry, Button, PhotoImage, Label, Toplevel, StringVar, OptionMenu
 import pathlib
 from pathlib import Path
 class View:
@@ -352,8 +352,48 @@ class View:
         )
         button_1.place(x=100, y=480, width=278, height=78)
 
+        button_icon_historico = PhotoImage(file=self.relative_to_assets("button_historico.png"))
+        button_icon = Button(
+            conversor_window,
+            image=button_icon_historico,
+            highlightthickness=0,
+            relief="flat",
+            bg="#F3751A",
+            command= self.open_historico           
+        )
+        button_icon.place(x=690, y=10, width=80, height=78)
+
         conversor_window.mainloop()
 
+    def open_historico(self):
+        self.controller.mostrar_historico_conversoes()
+        historico_window = Toplevel(self.window)
+        historico_window.geometry("1005x400")
+        historico_window.title("Histórico de Conversão")
+        historico_window.configure(bg="#F9F2ED")
+        
+        titulo = Label(historico_window, text="Histórico de conversão", bg="#F9F2ED", fg="#000000", font=("Helvetica", 16))
+        titulo.place(x=20, y=20) 
+        
+        colunas = ("origem", "destino", "taxa", "valor", "resultado")
+        
+        # Estilo do Treeview
+        style = ttk.Style()
+        style.configure("Custom.Treeview", background="#FFFFFF", foreground="#000000", fieldbackground="#1F1F1F")
+        style.map("Custom.Treeview", background=[("selected", "#FFA500")], foreground=[("selected", "white")])
+        
+        tree = ttk.Treeview(historico_window, columns=colunas, show="headings", style="Custom.Treeview")
+        tree.place(x=0, y=80)
+        
+         # Definindo os cabeçalhos das colunas
+        for coluna in colunas:
+            tree.heading(coluna, text=coluna)
+        
+        # Inserir os dados no Treeview
+        for row in self.controller.historico_dados:
+            tree.insert("", "end", values=row)
+    
+        historico_window.mainloop()
     def start(self):
         self.window.resizable(False, False)
         self.window.mainloop()

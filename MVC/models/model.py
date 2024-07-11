@@ -154,14 +154,14 @@ class Model:
             raise Exception('Falha ao obter as taxas de câmbio. Tente novamente mais tarde.')
 
     # Obter histórico de conversões
-    def historico_conversao(self, id):
+    def historico_conversao(self):
         conn = self.conn_db()
         if not conn:
             return "Erro ao conectar ao banco de dados."
 
         try:
             cursor = conn.cursor()
-            cursor.execute("SELECT * FROM conversao WHERE id = ?", (id))
+            cursor.execute("SELECT * FROM conversao WHERE id = id")
             conversoes = cursor.fetchall()
             return conversoes
         except sqlite3.Error as e:
