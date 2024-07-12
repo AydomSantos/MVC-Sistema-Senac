@@ -1,6 +1,9 @@
 from tkinter import Tk, ttk, Canvas, Entry, Button, PhotoImage, Label, Toplevel, StringVar, OptionMenu
 import pathlib
 from pathlib import Path
+
+global USUARIO
+
 class View:
     def __init__(self, controller):
         self.controller = controller
@@ -368,14 +371,14 @@ class View:
     def open_historico(self):
         self.controller.mostrar_historico_conversoes()
         historico_window = Toplevel(self.window)
-        historico_window.geometry("809x300")
+        historico_window.geometry("800x400")
         historico_window.title("Histórico de Conversão")
         historico_window.configure(bg="#F9F2ED")
         
         titulo = Label(historico_window, text="Histórico de conversão", bg="#F9F2ED", fg="#000000", font=("Helvetica", 16))
         titulo.place(x=20, y=20) 
         
-        colunas = ("origem", "destino","valor", "resultado")
+        colunas = ("Moeda de entrada", "Valor de entrada",  "Moeda de saída", "Valor de saída", 'Data da conversão')
         
         # Estilo do Treeview
         style = ttk.Style()
@@ -390,7 +393,7 @@ class View:
             tree.heading(coluna, text=coluna)
         
         # Inserir os dados no Treeview
-        for row in self.controller.historico_dados:
+        for row in self.controller.mostrar_historico_conversoes():
             tree.insert("", "end", values=row)
     
         historico_window.mainloop()

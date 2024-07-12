@@ -26,7 +26,11 @@ class Model:
                                 moeda_de_valor TEXT NOT NULL,
                                 moeda_para_valor TEXT NOT NULL,
                                 valor_convertido REAL NOT NULL,
-                                data_hora TEXT NOT NULL)''')
+                                data_hora TEXT NOT NULL,
+                                id_usuario INT NOT NULL,
+                           
+                                FOREIGN KEY (id_usuario) REFERENCES usuario(id) ON DELETE CASCADE
+                           )''')
             conn.commit()
             return conn
         except sqlite3.Error as e:
@@ -121,7 +125,7 @@ class Model:
         return error_message
 
     # Registrar conversão no banco de dados
-    def register_conversao(self, valor_entrada, moeda_de_valor, moeda_para_valor, valor_convertido):
+    def register_conversao(self, valor_entrada, moeda_de_valor, moeda_para_valor, valor_convertido, id_usuario):
         conn = self.conn_db()
         if not conn:
             return "Erro ao conectar ao banco de dados."
@@ -130,8 +134,8 @@ class Model:
             cursor = conn.cursor()
             data_hora = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             cursor.execute(
-                "INSERT INTO conversao (valor_entrada, moeda_de_valor, moeda_para_valor, valor_convertido, data_hora) VALUES (?, ?, ?, ?, ?)",
-                (valor_entrada, moeda_de_valor, moeda_para_valor, valor_convertido, data_hora)
+                "INSERT INTO conversao (valor_entrada, moeda_de_valor, moeda_para_valor, valor_convertido, data_hora, id_usuario) VALUES (?, ?, ?, ?, ?, ?)",
+                (valor_entrada, moeda_de_valor, moeda_para_valor, valor_convertido, data_hora, id_usuario)
             )
             conn.commit()
             return "Conversão registrada com sucesso."
@@ -141,27 +145,27 @@ class Model:
             self.disconnect_db(conn)
 
     # Converter moeda
-    def converter_moeda(self, valor_entrada, moeda_de_valor, moeda_para_valor):
+    def converter_moeda(self, valor_entrada, moeda_de_valor, moeda_para_valor, id_usuario):
         url = f'{self.base_url}{moeda_de_valor}-{moeda_para_valor}'
         response = requests.get(url)
         if response.status_code == 200:
             data = response.json()
             taxa_cambio = float(data[f'{moeda_de_valor}{moeda_para_valor}']['bid'])
             valor_convertido = valor_entrada * taxa_cambio
-            self.register_conversao(valor_entrada, moeda_de_valor, moeda_para_valor, valor_convertido)
+            self.register_conversao(valor_entrada, moeda_de_valor, moeda_para_valor, valor_convertido, id_usuario)
             return valor_convertido
         else:
             raise Exception('Falha ao obter as taxas de câmbio. Tente novamente mais tarde.')
 
     # Obter histórico de conversões
-    def historico_conversao(self):
+    def historico_conversao(self, id_usuario):
         conn = self.conn_db()
         if not conn:
             return "Erro ao conectar ao banco de dados."
 
         try:
             cursor = conn.cursor()
-            cursor.execute("SELECT * FROM conversao")
+            cursor.execute("SELECT moeda_de_valor, valor_entrada, moeda_para_valor, valor_convertido, data_hora FROM conversao WHERE id_usuario = ?", (id_usuario,))
             conversoes = cursor.fetchall()
             return conversoes
         except sqlite3.Error as e:

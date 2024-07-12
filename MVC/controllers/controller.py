@@ -6,6 +6,7 @@ class Controller:
     def __init__(self, model):
         self.model = model
         self.view = View(self)
+        self.usuario = None
 
     def valida_login(self):
         email = self.view.entry_email.get()
@@ -15,11 +16,13 @@ class Controller:
             self.view.error_label.config(text=error_message, fg="red")
         else:
             result = self.model.authenticate_user(email, senha)
+            self.usuario = result
             if isinstance(result, str):
                 self.view.error_label.config(text=result, fg="red")
             else:
                 self.view.error_label.config(text="")
                 self.view.open_conversor_window()
+        return result
 
     def open_registration_window(self):
         self.view.open_registration_window()
@@ -36,7 +39,7 @@ class Controller:
         moeda_para = self.view.moeda_para.get()
         try:
             valor = float(valor)
-            resultado = self.model.converter_moeda(valor, moeda_de, moeda_para)
+            resultado = self.model.converter_moeda(valor, moeda_de, moeda_para, self.usuario[0])
             self.view.app_resultado.config(text=f'{resultado:.2f}')
         except ValueError:
             self.view.app_resultado.config(text="Entrada de valor inválida")
@@ -44,13 +47,14 @@ class Controller:
             self.view.app_resultado.config(text=str(e))
 
     def mostrar_historico_conversoes(self):
-        historico = self.model.historico_conversao()
-        if isinstance(historico, str):
-            print(historico)
-        else:
-            print("Histórico de conversões:")
-            for conversao in historico:
-                print(f"ID: {conversao[0]}, Valor Entrada: {conversao[1]}, Moeda de Valor: {conversao[2]}, Moeda para Valor: {conversao[3]}, Valor Convertido: {conversao[4]}, Data e Hora: {conversao[5]}")
+        historico = self.model.historico_conversao(self.usuario[0])
+        return historico
+        # if isinstance(historico, str):
+        #     print(historico)
+        # else:
+        #     print("Histórico de conversões:")
+        #     for conversao in historico:
+        #         print(f"ID: {conversao[0]}, Valor Entrada: {conversao[1]}, Moeda de Valor: {conversao[2]}, Moeda para Valor: {conversao[3]}, Valor Convertido: {conversao[4]}, Data e Hora: {conversao[5]}")
 
     def start(self):
         self.view.start()
