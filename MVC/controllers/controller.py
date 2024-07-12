@@ -49,12 +49,6 @@ class Controller:
     def mostrar_historico_conversoes(self):
         historico = self.model.historico_conversao(self.usuario[0])
         return historico
-        # if isinstance(historico, str):
-        #     print(historico)
-        # else:
-        #     print("Histórico de conversões:")
-        #     for conversao in historico:
-        #         print(f"ID: {conversao[0]}, Valor Entrada: {conversao[1]}, Moeda de Valor: {conversao[2]}, Moeda para Valor: {conversao[3]}, Valor Convertido: {conversao[4]}, Data e Hora: {conversao[5]}")
-
+    
     def start(self):
         self.view.start()
