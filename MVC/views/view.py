@@ -368,14 +368,14 @@ class View:
     def open_historico(self):
         self.controller.mostrar_historico_conversoes()
         historico_window = Toplevel(self.window)
-        historico_window.geometry("1005x400")
+        historico_window.geometry("809x300")
         historico_window.title("Histórico de Conversão")
         historico_window.configure(bg="#F9F2ED")
         
         titulo = Label(historico_window, text="Histórico de conversão", bg="#F9F2ED", fg="#000000", font=("Helvetica", 16))
         titulo.place(x=20, y=20) 
         
-        colunas = ("origem", "destino", "taxa", "valor", "resultado")
+        colunas = ("origem", "destino","valor", "resultado")
         
         # Estilo do Treeview
         style = ttk.Style()

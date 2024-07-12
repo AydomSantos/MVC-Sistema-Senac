@@ -161,7 +161,7 @@ class Model:
 
         try:
             cursor = conn.cursor()
-            cursor.execute("SELECT * FROM conversao WHERE id = id")
+            cursor.execute("SELECT * FROM conversao")
             conversoes = cursor.fetchall()
             return conversoes
         except sqlite3.Error as e:
