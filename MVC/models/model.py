@@ -2,11 +2,12 @@ import re
 import requests
 import sqlite3
 from datetime import datetime
+from argon2 import PasswordHasher
 
 class Model:
     def __init__(self):
         self.base_url = 'https://economia.awesomeapi.com.br/last/'
-
+        self.ph = PasswordHasher()
     # Conectar ao banco de dados
     def conn_db(self):
         try:
@@ -76,6 +77,7 @@ class Model:
     # Registrar usuário no banco de dados
     def register_user(self, name, email, phone, password):
         conn = self.conn_db()
+        hashed_password = self.ph.hash(password) 
         if not conn:
             return "Erro ao conectar ao banco de dados."
 
@@ -83,7 +85,7 @@ class Model:
             cursor = conn.cursor()
             cursor.execute(
                 "INSERT INTO usuario(nome_usuario, email_usuario, telefone_usuario, senha_usuario) VALUES (?, ?, ?, ?)",
-                (name, email, phone, password)
+                (name, email, phone, hashed_password)
             )
             conn.commit()
             return "Usuário registrado com sucesso."
@@ -103,11 +105,14 @@ class Model:
         try:
             cursor = conn.cursor()
             cursor.execute(
-                "SELECT * FROM usuario WHERE email_usuario = ? AND senha_usuario = ?",
-                (email, password)
+                "SELECT * FROM usuario WHERE email_usuario = ? ",
+                (email,)
             )
             user = cursor.fetchone()
-            return user if user else "Email ou senha incorretos."
+            if user and self.ph.verify(user[4], password):  
+                return user
+            else:
+                return "Email ou senha incorretos."
         except sqlite3.Error as e:
             return f"Erro ao autenticar usuário: {e}"
         finally:

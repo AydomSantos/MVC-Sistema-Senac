@@ -46,6 +46,10 @@ class Controller:
         except Exception as e:
             self.view.app_resultado.config(text=str(e))
 
+    def close_converter(self):
+     self.view.window.destroy()
+     self.view.window.quit()
+    
     def mostrar_historico_conversoes(self):
         historico = self.model.historico_conversao(self.usuario[0])
         return historico

@@ -243,6 +243,9 @@ class View:
         conversor_window.geometry("776x654")
         conversor_window.configure(bg="#FFFFFF")
         conversor_window.title("Conversor")
+        
+         # Set up the close protocol
+        conversor_window.protocol("WM_DELETE_WINDOW", self.controller.close_converter)
 
         moeda = ['USD', 'BRL', 'EUR', 'CAD', 'AUD', 'CHF', 'JPY', 'RUB', 'INR', 'AOA']
         self.dict_moedas = {
@@ -375,6 +378,7 @@ class View:
         historico_window.geometry("1100x400")
         historico_window.title("Histórico de Conversão")
         historico_window.configure(bg="#F9F2ED")
+        
         
         titulo = Label(historico_window, text="Histórico de conversão", bg="#F9F2ED", fg="#000000", font=("Helvetica", 16))
         titulo.place(x=20, y=20) 
