@@ -238,6 +238,7 @@ class View:
         )
 
     def open_conversor_window(self):
+        self.window.withdraw()
         conversor_window = Toplevel(self.window)
         conversor_window.geometry("776x654")
         conversor_window.configure(bg="#FFFFFF")
