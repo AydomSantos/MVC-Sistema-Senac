@@ -23,10 +23,10 @@ class Model:
             # Criar tabela de conversões se não existir
             cursor.execute('''CREATE TABLE IF NOT EXISTS conversao (
                                 id INTEGER PRIMARY KEY AUTOINCREMENT,
-                                valor_entrada REAL NOT NULL,
+                                valor_entrada DECIMAL(10, 2) NOT NULL,
                                 moeda_de_valor TEXT NOT NULL,
                                 moeda_para_valor TEXT NOT NULL,
-                                valor_convertido REAL NOT NULL,
+                                valor_convertido DECIMAL(10, 2) NOT NULL,
                                 data_hora TEXT NOT NULL,
                                 id_usuario INT NOT NULL,
                            
@@ -170,7 +170,7 @@ class Model:
 
         try:
             cursor = conn.cursor()
-            cursor.execute("SELECT moeda_de_valor, valor_entrada, moeda_para_valor, valor_convertido, data_hora FROM conversao WHERE id_usuario = ?", (id_usuario,))
+            cursor.execute("SELECT moeda_de_valor, round(valor_entrada, 2), moeda_para_valor, round(valor_convertido, 2), data_hora FROM conversao WHERE id_usuario = ?", (id_usuario,))
             conversoes = cursor.fetchall()
             return conversoes
         except sqlite3.Error as e:
